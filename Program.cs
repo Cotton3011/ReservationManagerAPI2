@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using ReservationManagerAPI2.Data;
+using ReservationManagerAPI2.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<AuthService>();
 
 //AppDbContext‚Ìİ’è‚ğ’Ç‰Á
 builder.Services.AddDbContext<AppDbContext>(options =>

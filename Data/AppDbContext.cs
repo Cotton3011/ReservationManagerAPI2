@@ -9,7 +9,7 @@ namespace ReservationManagerAPI2.Data
 		{
 		}
 
-		public DbSet<User> User { get; set; }
+		public DbSet<User> Users { get; set; }
 		public DbSet<Reservation> Reservation { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
