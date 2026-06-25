@@ -18,7 +18,7 @@ namespace ReservationManagerAPI2.Controllers
 		public async Task<IActionResult> Register(RegisterRequest request)
 		{
 			var result = await _authService.Register(request);
-			
+
 			if (!result)
 			{
 				return BadRequest("このユーザー名はすでに登録されています");
@@ -26,5 +26,19 @@ namespace ReservationManagerAPI2.Controllers
 
 			return Ok("ユーザー登録が完了しました");
 		}
+
+		[HttpPost("login")]
+		public async Task<IActionResult> Login(LoginRequest request)
+		{
+			var response = await _authService.LoginAsync(request);
+
+			if (response == null)
+			{
+				return Unauthorized("ユーザー名またはパスワードが正しくありません。");
+			}
+
+			return Ok(response);
+		}
 	}
 }
+
