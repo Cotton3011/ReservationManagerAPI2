@@ -56,5 +56,24 @@ namespace ReservationManagerAPI2.Services
 
 			return (true, "予約成功", reservation);
 		}
+
+		public async Task< List<ReservationResponse>>GetReservation(int userId)
+		{
+			//ログイン中ユーザー本人の予約だけを一覧取得
+			return await _context.Reservations.
+				Where(r => r.UserId == userId).		//条件に合うデータのみ
+				OrderBy(r => r.StartTime).			//予約開始日時順に並べる
+				Select(r => new ReservationResponse //DTOに変換
+				{
+					Id = r.Id,
+					StartTime = r.StartTime,
+					EndTime = r.EndTime,
+					Memo = r.Memo,
+					Status = r.Status,
+					CreateAt= r.CreateAt,
+					UpdateAt= r.UpdateAt,
+				}).
+				ToListAsync();
+		}
 	}
 }

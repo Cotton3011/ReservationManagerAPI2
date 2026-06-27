@@ -36,5 +36,18 @@ namespace ReservationManagerAPI2.Controllers
 
 			return StatusCode(StatusCodes.Status201Created, result.Reservation);
 		}
+
+		[HttpGet]
+		public async Task<IActionResult> Get()
+		{
+			var userIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (!int.TryParse(userIdText, out int userId))
+			{
+				return Unauthorized();
+			}
+			var reservations = await _service.GetReservation(userId);
+
+			return Ok(reservations);
+		}
 	}
 }

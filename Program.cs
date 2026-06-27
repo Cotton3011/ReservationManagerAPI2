@@ -13,6 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<ReservationService>();
 
 var jwtKey = builder.Configuration["JwtKey"]
 ?? throw new InvalidOperationException("JWT”é–§Œ®‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
