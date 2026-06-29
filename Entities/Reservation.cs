@@ -3,7 +3,7 @@
 	public enum ReservationStatus
 	{
 		Reserved = 0,
-		Cancelled = 1,
+		Canceled = 1,
 	}
 	public class Reservation
 	{

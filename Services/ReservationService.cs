@@ -3,6 +3,7 @@ using ReservationManagerAPI2.Dtos;
 using ReservationManagerAPI2.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ReservationManagerAPI2.Services
 {
@@ -90,6 +91,27 @@ namespace ReservationManagerAPI2.Services
 					CreateAt = r.CreateAt,
 					UpdateAt= r.UpdateAt,
 				}).FirstOrDefaultAsync();
+		}
+
+		public async Task<(bool Success, bool NotFound, string? Message)> CancelMyReservationAsync(int userId, int id)
+		{
+			var reservation = await _context.Reservations.
+				FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+			if (reservation is null)
+			{
+				return (false, true, "予約がありません");
+			}
+
+			if (reservation.Status == ReservationStatus.Canceled)
+			{
+				return (false, false, "キャンセル済みです");
+			}
+
+			reservation.Status = ReservationStatus.Canceled;
+			reservation.UpdateAt = DateTime.UtcNow;
+			await _context.SaveChangesAsync();
+			return (true, false, null);
 		}
 	}
 }

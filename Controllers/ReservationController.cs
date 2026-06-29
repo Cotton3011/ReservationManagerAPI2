@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.Identity.Client;
 using ReservationManagerAPI2.Data;
 using ReservationManagerAPI2.Dtos;
@@ -66,6 +67,27 @@ namespace ReservationManagerAPI2.Controllers
 			}
 
 			return Ok(reservation);
+		}
+
+		[HttpPatch("{id}/cancel")]
+		public async Task<IActionResult> CancelMyReservation(int id)
+		{
+			var userIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (!int.TryParse(userIdText, out int userId))
+			{
+				return Unauthorized();
+			}
+
+			var cancel = await _service.CancelMyReservationAsync(userId, id);
+			if (cancel.NotFound)
+			{
+				return BadRequest(cancel.Message);
+			}
+			if (!cancel.Success)
+			{
+				return BadRequest(cancel.Message);
+			}
+			return Ok("予約をキャンセルしました");
 		}
 	}
 }
