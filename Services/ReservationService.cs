@@ -75,5 +75,21 @@ namespace ReservationManagerAPI2.Services
 				}).
 				ToListAsync();
 		}
+
+		public async Task<ReservationResponse?> GetMyReservationByIdAsync(int userId, int id)
+		{
+			return await _context.Reservations.
+				Where(r => r.UserId == userId && r.Id == id).
+				Select(r => new ReservationResponse
+				{
+					Id = r.Id,
+					StartTime = r.StartTime,
+					EndTime = r.EndTime,
+					Memo = r.Memo,
+					Status = r.Status,
+					CreateAt = r.CreateAt,
+					UpdateAt= r.UpdateAt,
+				}).FirstOrDefaultAsync();
+		}
 	}
 }

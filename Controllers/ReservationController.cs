@@ -49,5 +49,23 @@ namespace ReservationManagerAPI2.Controllers
 
 			return Ok(reservations);
 		}
+
+		[HttpGet("{id}")]
+		public async Task<IActionResult> GeGetMyReservationByIdtId(int id)
+		{
+			var userIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if(!int.TryParse(userIdText, out int userId))
+			{
+				return Unauthorized();
+			}
+			var reservation = await _service.GetMyReservationByIdAsync(userId, id);
+
+			if (reservation is null)
+			{
+				return NotFound("予約が見つかりません");
+			}
+
+			return Ok(reservation);
+		}
 	}
 }
