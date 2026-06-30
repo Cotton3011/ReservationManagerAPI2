@@ -15,7 +15,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<ReservationService>();
 
-var jwtKey = builder.Configuration["JwtKey"]
+var jwtKey = builder.Configuration["Jwt:Key"]
 ?? throw new InvalidOperationException("JWT”é–§Œ®‚ªÝ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
 
 builder.Services.AddAuthentication(options => 
