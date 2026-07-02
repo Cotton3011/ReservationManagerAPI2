@@ -113,5 +113,10 @@ namespace ReservationManagerAPI2.Services
 			await _context.SaveChangesAsync();
 			return (true, false, null);
 		}
+
+		public async Task<ReservationResponse?> GetAllReservation()
+		{
+
+		}
 	}
 }
