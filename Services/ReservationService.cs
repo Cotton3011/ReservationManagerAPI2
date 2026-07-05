@@ -114,9 +114,9 @@ namespace ReservationManagerAPI2.Services
 			return (true, false, null);
 		}
 
-		public async Task<ReservationResponse?> GetAllReservation()
+		public async Task<List<AdminReservationResponse>> GetAllReservationsForAdminAsync()
 		{
-			var reservation = await _context.Reservations.
+			return await _context.Reservations.
 				Include(r => r.User).
 				OrderBy(r => r.StartTime).
 				Select(r => new AdminReservationResponse

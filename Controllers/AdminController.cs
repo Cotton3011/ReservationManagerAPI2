@@ -7,8 +7,8 @@ using ReservationManagerAPI2.Services;
 namespace ReservationManagerAPI2.Controllers
 {
 	[ApiController]
+	[Route("api/admin/reservations")]
 	[Authorize(Roles = "Admin")]
-	[Route("api/[controller]")]
 	public class AdminController : ControllerBase
 	{
 		readonly ReservationService _reservationService;
@@ -17,12 +17,12 @@ namespace ReservationManagerAPI2.Controllers
 			_reservationService = reservationService;
 		}
 
-		public async Task<IActionResult> GetAllreservations()
+		[HttpGet]
+		public async Task<IActionResult> GetAllReservations()
 		{
-			var result = _reservationService.GetReservation();
+			var reservations = await _reservationService.GetAllReservationsForAdminAsync();
 
-			return Ok(result);
+			return Ok(reservations);
 		}
-
 	}
 }
