@@ -116,7 +116,14 @@ namespace ReservationManagerAPI2.Services
 
 		public async Task<ReservationResponse?> GetAllReservation()
 		{
-
+			var reservation = await _context.Reservations.
+				Include(r => r.User).
+				OrderBy(r => r.StartTime).
+				Select(r => new AdminReservationResponse
+				{
+					Id = r.Id,
+					dateTime = DateTime.UtcNow,
+				}).ToListAsync();
 		}
 	}
 }
