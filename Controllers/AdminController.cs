@@ -12,7 +12,7 @@ namespace ReservationManagerAPI2.Controllers
 	public class AdminController : ControllerBase
 	{
 		readonly ReservationService _reservationService;
-		public AdminController(ReservationService reservationService) 
+		public AdminController(ReservationService reservationService)
 		{
 			_reservationService = reservationService;
 		}
@@ -23,6 +23,22 @@ namespace ReservationManagerAPI2.Controllers
 			var reservations = await _reservationService.GetAllReservationsForAdminAsync();
 
 			return Ok(reservations);
+		}
+
+		[HttpPatch("{id}/cancel")]
+		public async Task<IActionResult> CancelReservation(int id)
+		{
+			var result = await _reservationService.CancelReservationAsync(id);
+			if (result.NotFound)
+			{
+				return NotFound(result.ErrorMessage);
+			}
+			if (!result.Success)
+			{
+				return BadRequest(result.ErrorMessage);
+			}
+
+			return Ok("予約をキャンセルしました");
 		}
 	}
 }

@@ -125,5 +125,26 @@ namespace ReservationManagerAPI2.Services
 					dateTime = DateTime.UtcNow,
 				}).ToListAsync();
 		}
+
+		public async Task<(bool Success, bool NotFound, string? ErrorMessage)> CancelReservationAsync(int id)
+		{
+			var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
+
+			if (reservation is null)
+			{
+				return (false, true, "予約がありません");
+			}
+
+			if (reservation.Status == ReservationStatus.Canceled)
+			{
+				return (false, false, "この予約はすでにキャンセル済み");
+			}
+
+			reservation.Status = ReservationStatus.Canceled;
+			reservation.UpdateAt = DateTime.UtcNow;
+
+			await _context.SaveChangesAsync();
+			return (true, false, "成功");
+		}
 	}
 }
