@@ -14,10 +14,11 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<ReservationService>();
+builder.Services.AddScoped<AdminSeedService>();
 
+//JWT
 var jwtKey = builder.Configuration["Jwt:Key"]
 ?? throw new InvalidOperationException("JWTîÈñßåÆÇ™ê›íËÇ≥ÇÍÇƒÇ¢Ç‹ÇπÇÒ");
-
 builder.Services.AddAuthentication(options => 
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -38,13 +39,12 @@ builder.Services.AddAuthentication(options =>
 		ClockSkew = TimeSpan.Zero
 	};
 });
-
 builder.Services.AddAuthorization();
 
 
-//AppDbContextÇÃê›íËÇí«â¡
-builder.Services.AddDbContext<AppDbContext>(options =>
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+	//AppDbContextÇÃê›íËÇí«â¡
+	builder.Services.AddDbContext<AppDbContext>(options =>
+		options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -58,6 +58,14 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+
+//Admin
+using (var scope = app.Services.CreateScope())
+{
+	var adminSeedService = scope.ServiceProvider.GetRequiredService<AdminSeedService>();
+	await adminSeedService.SeedAsync();
+}
+
 
 app.UseHttpsRedirection();
 
