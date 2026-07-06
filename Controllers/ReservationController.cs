@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing.Matching;
-using Microsoft.Identity.Client;
-using ReservationManagerAPI2.Data;
 using ReservationManagerAPI2.Dtos;
 using ReservationManagerAPI2.Services;
 using System.Security.Claims;
@@ -10,7 +7,7 @@ using System.Security.Claims;
 namespace ReservationManagerAPI2.Controllers
 {
 	[ApiController]
-	[Route("api/[controller]")]
+	[Route("api/[reservations]")]
 	[Authorize]
 	public class ReservationController : ControllerBase
 	{
@@ -81,7 +78,7 @@ namespace ReservationManagerAPI2.Controllers
 			var cancel = await _service.CancelMyReservationAsync(userId, id);
 			if (cancel.NotFound)
 			{
-				return BadRequest(cancel.Message);
+				return NotFound(cancel.Message);
 			}
 			if (!cancel.Success)
 			{

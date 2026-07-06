@@ -2,8 +2,6 @@
 using ReservationManagerAPI2.Dtos;
 using ReservationManagerAPI2.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Immutable;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ReservationManagerAPI2.Services
 {
@@ -122,7 +120,14 @@ namespace ReservationManagerAPI2.Services
 				Select(r => new AdminReservationResponse
 				{
 					Id = r.Id,
-					dateTime = DateTime.UtcNow,
+					UserId = r.UserId,
+					UserName = r.User != null ? r.User.UserName : string.Empty,
+					StartTime = r.StartTime,
+					EndTime = r.EndTime,
+					Memo = r.Memo,
+					Status = r.Status,
+					CreateAt = r.CreateAt,
+					UpdateAt = r.UpdateAt
 				}).ToListAsync();
 		}
 

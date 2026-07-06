@@ -14,7 +14,7 @@ namespace ReservationManagerAPI2.Controllers
 			_authService = service;
 		}
 
-		[HttpGet("register")]
+		[HttpPost("register")]
 		public async Task<IActionResult> Register(RegisterRequest request)
 		{
 			var result = await _authService.Register(request);
