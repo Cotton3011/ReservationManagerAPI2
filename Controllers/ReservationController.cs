@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace ReservationManagerAPI2.Controllers
 {
 	[ApiController]
-	[Route("api/[reservations]")]
+	[Route("api/reservations")]
 	[Authorize]
 	public class ReservationController : ControllerBase
 	{
