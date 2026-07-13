@@ -1,1 +1,51 @@
-﻿
+﻿services:
+  db:
+    #SQL Server 2022のコンテナを起動する
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      # SQL Server軌道に必要なライセンスと管理者パスワード
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      #PC上のツールやdotnet runからDBへ接続できるようにする
+      - "1433:1433"
+    volumes:
+      #DBコンテナを作り直してもデータを保持する
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      #SQL Serverへ実際に接続できるかを確認する
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    #プロジェクト直下のdockerfileを使ってAPIイメージをビルドする
+    build:
+      context: .
+      dockerfile:  Dockerfile
+    ports:
+      #PCのhttp://localhost;8080からAPIへアクセスできるようにする
+      - "8080:8080"
+    environment:
+      #ASP.NET Coreの実行環境と待受URLを設定する
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+      # dbはCompose内のSQL Serverサービス名　localhostは使わない
+      ConnectionStrings__DefaultConnection: Server=db,1433;Database=ReservationManagerAPI2Db;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+
+      #現在のProgram.csがJWT設定を必要とするため環境変数から渡す
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: ${JWT_ISSUER} #発行したAPIの識別子
+      Jwt__Audience: ${JWT_AUDIENCE} #JWTを利用できる対象の識別子
+    depends_on:
+      db:
+        #SQL Serverが接続可能になってからAPIを起動する
+        condition: service_healthy
+
+volumes:
+  #SQL Serverデータを保持するDocker管理の領域
+  sqlserver-data:
+    
