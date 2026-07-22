@@ -32,6 +32,9 @@
       #ASP.NET Coreの実行環境と待受URLを設定する
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      Jwt__ExpireMinutes: "${JWT_EXPIRE_MINUTES}"
+      AdminUser__Name: "${ADMIN_USER_NAME}"
+      AdminUser__Password: "${ADMIN_USER_PASSWORD}"
 
       # dbはCompose内のSQL Serverサービス名　localhostは使わない
       ConnectionStrings__DefaultConnection: Server=db,1433;Database=ReservationManagerAPI2Db;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True

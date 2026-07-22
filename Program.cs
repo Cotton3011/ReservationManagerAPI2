@@ -40,10 +40,13 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddAuthorization();
 
+//ŠÂ‹«•Ï”‚È‚Ç‚©‚çDBÚ‘±•¶š—ñ‚ğæ“¾‚µA–¢İ’è‚È‚ç‹N“®‚ğ~‚ß‚é
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+	?? throw new InvalidOperationException("DBÚ‘±•¶š—ñ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
 
-	//AppDbContext‚Ìİ’è‚ğ’Ç‰Á
-	builder.Services.AddDbContext<AppDbContext>(options =>
-		options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//AppDbContext‚Ìİ’è‚ğ’Ç‰Á
+builder.Services.AddDbContext<AppDbContext>(options =>
+	options.UseSqlServer(connectionString));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
