@@ -1,0 +1,32 @@
+#gitHub Actions上で表示するWorkflow名
+name: Build
+
+#すべてのブランチへのpush時に実行する
+on:
+  push:
+
+#CIで実行する処理
+jobs:
+  build:
+    #GitHubが用意するUbuntu環境で実行する
+    runs-on: ubuntu-latest
+
+    steps:
+      #リポジトリのコードをRunnerへ取得する
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
+      #プロジェクトと同じ.NET 8 SDKを利用する
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      #NuGetパッケージを復元する
+      - name: Restore dependencies
+        run: dotnet restore ReservationManagerAPI2.csproj
+
+      #復元済みパッケージを使ってRelease構成でビルドする
+      - name: Build
+        run: dotnet build ReservationManagerAPI2.csproj --configuration Release --no-restore
+
