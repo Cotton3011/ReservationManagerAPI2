@@ -33,7 +33,7 @@
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       Jwt__ExpireMinutes: "${JWT_EXPIRE_MINUTES}"
-      AdminUser__Name: "${ADMIN_USER_NAME}"
+      AdminUser__UserName: "${ADMIN_USER_NAME}"
       AdminUser__Password: "${ADMIN_USER_PASSWORD}"
 
       # dbはCompose内のSQL Serverサービス名　localhostは使わない
