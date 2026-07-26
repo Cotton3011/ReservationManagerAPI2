@@ -1,5 +1,5 @@
 #gitHub Actions上で表示するWorkflow名
-name: Build
+name: Build and Test
 
 #すべてのブランチへのpush時に実行する
 on:
@@ -22,11 +22,15 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      #NuGetパッケージを復元する
+      #APIとテストの依存パッケージをまとめて復元する
       - name: Restore dependencies
-        run: dotnet restore ReservationManagerAPI2.csproj
+        run: dotnet restore ReservationManagerAPI2.sln
 
-      #復元済みパッケージを使ってRelease構成でビルドする
+      #Release構成でソリューション全体をビルドする
       - name: Build
-        run: dotnet build ReservationManagerAPI2.csproj --configuration Release --no-restore
+        run: dotnet build ReservationManagerAPI2.sln --configuration Release --no-restore
+
+      #ビルド済みのテストを実行して、予約重複判定を検証する
+      - name: Test
+        run: dotnet test ReservationManagerAPI2.sln --configuration Release --no-build --no-restore
 
