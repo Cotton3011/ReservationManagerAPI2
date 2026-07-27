@@ -11,13 +11,17 @@ namespace ReservationManagerAPI2.Tests
 	{
 		static AppDbContext CreateContext()
 		{
-			//テストごのに独立したメモリ上DBを作成する
+			//テストごとに独立したメモリ上DBを作成する
 			var options = new DbContextOptionsBuilder<AppDbContext>()
 				.UseInMemoryDatabase(Guid.NewGuid().ToString())
 				.Options;
 			return new AppDbContext(options);
 		}
 
+		/// <summary>
+		/// 既存予約と時間帯が重なる予約を作ろうとした場合
+		/// </summary>
+		/// <returns></returns>
 		[Fact]
 		public async Task CreateReservationRequest_ReservationOverlaps_ReturnsError()
 		{
@@ -48,8 +52,72 @@ namespace ReservationManagerAPI2.Tests
 			};
 
 			//別ユーザーであっても、同じ時間帯の予約は作成できない
-			var exception = await Assert.ThrowsAsync<ConflictException>(() => service.CreateReservationRequest(2, request));
+			var exception = await Assert.ThrowsAsync<ConflictException>(
+				() => service.CreateReservationRequest(2, request));
+
 			Assert.Equal("すでに予約されています", exception.Message);
+		}
+
+		/// <summary>
+		/// 存在しない自分の予約詳細を取得した場合
+		/// </summary>
+		/// <returns></returns>
+		[Fact]
+		public async Task GetMyreservationByIdAsync_ReservationNotExist_ThrowsNotFoundException()
+		{
+			await using var context = CreateContext();
+			var service = new ReservationService(context);
+
+			//存在しない予約IDでは404用の業務例外が発生する
+			var exception = await Assert.ThrowsAsync<NotFoundException>(
+				() => service.GetMyReservationByIdAsync(userId: 1, id: 999));
+		}
+
+		/// <summary>
+		/// 存在しない自分の予約をキャンセルした場合
+		/// </summary>
+		/// <returns></returns>
+		[Fact]
+		public async Task CancelMyReservationAsync_ReservationDoesNotExist_ThrowsNotFoundException()
+		{
+			await using var context = CreateContext();
+			var service = new ReservationService (context);
+
+			//自分の予約がなければ404
+			var exception = await Assert.ThrowsAsync <NotFoundException>(
+				() => service.CancelMyReservationAsync(userId: 1, id: 999));
+			Assert.Equal("予約がありません", exception.Message);
+		}
+
+		/// <summary>
+		/// キャンセル済みの予約を管理者が再度キャンセルした場合
+		/// </summary>
+		/// <returns></returns>
+		[Fact]
+		public async Task CancelReservationAsync_ReservationIsCanceled_ThrowsConflictException()
+		{
+			await using var context = CreateContext();
+			var now = DateTime.UtcNow;
+
+			context.Reservations.Add(new Reservation
+			{
+				UserId = 1,
+				StartTime = now.AddHours(1),
+				EndTime = now.AddHours(2),
+				Memo = "キャンセル済み予約",
+				Status = ReservationStatus.Canceled,
+				CreateAt = now,
+				UpdateAt = now,
+			});
+			await context.SaveChangesAsync();
+
+			var service = new ReservationService(context);
+
+			//キャンセル済み予約を再度キャンセルすると409用の業務例外が発生する
+			var exception = await Assert.ThrowsAsync<ConflictException>(
+				() => service.CancelReservationAsync(id: 1));
+
+			Assert.Equal("この予約はすでにキャンセル済み", exception.Message);
 		}
 	}
 }

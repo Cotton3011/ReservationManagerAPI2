@@ -28,16 +28,7 @@ namespace ReservationManagerAPI2.Controllers
 		[HttpPatch("{id}/cancel")]
 		public async Task<IActionResult> CancelReservation(int id)
 		{
-			var result = await _reservationService.CancelReservationAsync(id);
-			if (result.NotFound)
-			{
-				return NotFound(result.ErrorMessage);
-			}
-			if (!result.Success)
-			{
-				return BadRequest(result.ErrorMessage);
-			}
-
+			await _reservationService.CancelReservationAsync(id);
 			return Ok("予約をキャンセルしました");
 		}
 	}

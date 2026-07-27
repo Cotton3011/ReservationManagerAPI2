@@ -53,11 +53,6 @@ namespace ReservationManagerAPI2.Controllers
 			}
 			var reservation = await _service.GetMyReservationByIdAsync(userId, id);
 
-			if (reservation is null)
-			{
-				return NotFound("予約が見つかりません");
-			}
-
 			return Ok(reservation);
 		}
 
@@ -70,15 +65,8 @@ namespace ReservationManagerAPI2.Controllers
 				return Unauthorized();
 			}
 
-			var cancel = await _service.CancelMyReservationAsync(userId, id);
-			if (cancel.NotFound)
-			{
-				return NotFound(cancel.Message);
-			}
-			if (!cancel.Success)
-			{
-				return BadRequest(cancel.Message);
-			}
+			//業務エラーはMiddlewareが404/409へ変換する
+			await _service.CancelMyReservationAsync(userId, id);
 			return Ok("予約をキャンセルしました");
 		}
 	}

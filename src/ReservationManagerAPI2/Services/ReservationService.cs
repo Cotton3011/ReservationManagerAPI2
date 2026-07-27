@@ -3,6 +3,7 @@ using ReservationManagerAPI2.Dtos;
 using ReservationManagerAPI2.Data;
 using Microsoft.EntityFrameworkCore;
 using ReservationManagerAPI2.Exceptions;
+using System.Diagnostics;
 
 namespace ReservationManagerAPI2.Services
 {
@@ -77,11 +78,12 @@ namespace ReservationManagerAPI2.Services
 				ToListAsync();
 		}
 
-		public async Task<ReservationResponse?> GetMyReservationByIdAsync(int userId, int id)
+		//ログイン中のユーザー自身の予約詳細を取得する
+		public async Task<ReservationResponse> GetMyReservationByIdAsync(int userId, int id)
 		{
-			return await _context.Reservations.
-				Where(r => r.UserId == userId && r.Id == id).
-				Select(r => new ReservationResponse
+			var reservation = await _context.Reservations
+				.Where(r => r.UserId == userId && r.Id == id)
+				.Select(r => new ReservationResponse
 				{
 					Id = r.Id,
 					StartTime = r.StartTime,
@@ -89,29 +91,34 @@ namespace ReservationManagerAPI2.Services
 					Memo = r.Memo,
 					Status = r.Status,
 					CreateAt = r.CreateAt,
-					UpdateAt= r.UpdateAt,
+					UpdateAt = r.UpdateAt,
 				}).FirstOrDefaultAsync();
+
+			if (reservation is null)
+			{
+				throw new NotFoundException("予約が見つかりません");
+			}
+			return reservation;
 		}
 
-		public async Task<(bool Success, bool NotFound, string? Message)> CancelMyReservationAsync(int userId, int id)
+		public async Task CancelMyReservationAsync(int userId, int id)
 		{
 			var reservation = await _context.Reservations.
 				FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 
 			if (reservation is null)
 			{
-				return (false, true, "予約がありません");
+				throw new NotFoundException("予約がありません");
 			}
 
 			if (reservation.Status == ReservationStatus.Canceled)
 			{
-				return (false, false, "キャンセル済みです");
+				throw new ConflictException("キャンセル済みです");
 			}
 
 			reservation.Status = ReservationStatus.Canceled;
 			reservation.UpdateAt = DateTime.UtcNow;
 			await _context.SaveChangesAsync();
-			return (true, false, null);
 		}
 
 		public async Task<List<AdminReservationResponse>> GetAllReservationsForAdminAsync()
@@ -133,25 +140,24 @@ namespace ReservationManagerAPI2.Services
 				}).ToListAsync();
 		}
 
-		public async Task<(bool Success, bool NotFound, string? ErrorMessage)> CancelReservationAsync(int id)
+		public async Task CancelReservationAsync(int id)
 		{
 			var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
 
 			if (reservation is null)
 			{
-				return (false, true, "予約がありません");
+				throw new NotFoundException("予約がありません");
 			}
 
 			if (reservation.Status == ReservationStatus.Canceled)
 			{
-				return (false, false, "この予約はすでにキャンセル済み");
+				throw new ConflictException("この予約はすでにキャンセル済み");
 			}
 
 			reservation.Status = ReservationStatus.Canceled;
 			reservation.UpdateAt = DateTime.UtcNow;
 
 			await _context.SaveChangesAsync();
-			return (true, false, "成功");
 		}
 	}
 }
