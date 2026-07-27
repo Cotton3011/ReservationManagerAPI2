@@ -25,14 +25,9 @@ namespace ReservationManagerAPI2.Controllers
 			{
 				return Unauthorized();
 			}
-			var result = await _service.CreateReservationRequest(usrId, request);
+			var reservation = await _service.CreateReservationRequest(usrId, request);
 			
-			if (!result.Success)
-			{
-				return BadRequest(result.ErrorMessage);
-			}
-
-			return StatusCode(StatusCodes.Status201Created, result.Reservation);
+			return StatusCode(StatusCodes.Status201Created, reservation);
 		}
 
 		[HttpGet]

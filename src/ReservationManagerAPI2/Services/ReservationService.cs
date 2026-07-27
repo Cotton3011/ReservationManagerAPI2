@@ -2,6 +2,7 @@
 using ReservationManagerAPI2.Dtos;
 using ReservationManagerAPI2.Data;
 using Microsoft.EntityFrameworkCore;
+using ReservationManagerAPI2.Exceptions;
 
 namespace ReservationManagerAPI2.Services
 {
@@ -13,17 +14,18 @@ namespace ReservationManagerAPI2.Services
 			_context = appDbContext;
 		}
 
-		public async Task<(bool Success, string? ErrorMessage, Reservation? Reservation)>
-			CreateReservationRequest(int userId, CreateReservationRequest request) 
+		public async Task<Reservation>CreateReservationRequest(
+			int userId, 
+			CreateReservationRequest request) 
 		{
 			if (request.EndTime <= request.StartTime)
 			{
-				return (false, "終了日時は開始日時より後にしてください", null);
+				throw new BadRequestException("終了日時は開始日時より後にしてください");
 			}
 
 			if (request.StartTime <= DateTime.UtcNow) 
 			{
-				return (false, "過去日時は予約不可です", null);
+				throw new BadRequestException("過去日時は予約不可です");
 			}
 
 			//重複確認
@@ -34,7 +36,7 @@ namespace ReservationManagerAPI2.Services
 			
 			if (isOverlap)
 			{
-				return (false, "すでに予約されています", null);
+				throw new ConflictException("すでに予約されています");
 			}
 
 			var now = DateTime.UtcNow;
@@ -53,7 +55,7 @@ namespace ReservationManagerAPI2.Services
 			_context.Reservations.Add(reservation);
 			await _context.SaveChangesAsync();
 
-			return (true, "予約成功", reservation);
+			return reservation;
 		}
 
 		public async Task< List<ReservationResponse>>GetReservation(int userId)

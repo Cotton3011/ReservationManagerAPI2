@@ -3,6 +3,7 @@ using ReservationManagerAPI2.Data;
 using ReservationManagerAPI2.Dtos;
 using ReservationManagerAPI2.Entities;
 using ReservationManagerAPI2.Services;
+using ReservationManagerAPI2.Exceptions;
 
 namespace ReservationManagerAPI2.Tests
 {
@@ -47,11 +48,8 @@ namespace ReservationManagerAPI2.Tests
 			};
 
 			//別ユーザーであっても、同じ時間帯の予約は作成できない
-			var result = await service.CreateReservationRequest(2, request);
-
-			Assert.False(result.Success);
-			Assert.Equal("すでに予約されています", result.ErrorMessage);
-			Assert.Null(result.Reservation);
+			var exception = await Assert.ThrowsAsync<ConflictException>(() => service.CreateReservationRequest(2, request));
+			Assert.Equal("すでに予約されています", exception.Message);
 		}
 	}
 }
