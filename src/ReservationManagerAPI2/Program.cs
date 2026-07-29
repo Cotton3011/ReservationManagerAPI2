@@ -1,10 +1,11 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ReservationManagerAPI2.Data;
 using ReservationManagerAPI2.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ReservationManagerAPI2.Middlewares;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,7 @@ builder.Services.AddScoped<AdminSeedService>();
 
 //JWT
 var jwtKey = builder.Configuration["Jwt:Key"]
-?? throw new InvalidOperationException("JWT�閧�����ݒ肳��Ă��܂���");
+?? throw new InvalidOperationException("JWT秘密鍵が設定されていません");
 builder.Services.AddAuthentication(options => 
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -41,17 +42,45 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddAuthorization();
 
-//���ϐ��Ȃǂ���DB�ڑ���������擾���A���ݒ�Ȃ�N�����~�߂�
+//環境変数などからDB接続文字列を取得し、未設定なら起動を止める
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-	?? throw new InvalidOperationException("DB�ڑ������񂪐ݒ肳��Ă��܂���");
+	?? throw new InvalidOperationException("DB接続文字列が設定されていません");
 
-//AppDbContext�̐ݒ��ǉ�
+//AppDbContextの設定を追加
 builder.Services.AddDbContext<AppDbContext>(options =>
 	options.UseSqlServer(connectionString));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => 
+{
+	//SwaggerにJWTの送信方法を定義する
+	options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+	{
+		Name = "Authenrization",
+		Type = SecuritySchemeType.Http,
+		Scheme = "bearer",
+		BearerFormat = "JWT",
+		In = ParameterLocation.Header,
+		Description = "ログインで取得したJWTを入力してください"
+	});
+
+	//Bearer認証をAPI呼び出しで使用できるようにする
+	options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+	{
+		{
+			new OpenApiSecurityScheme()
+			{
+				Reference = new OpenApiReference()
+				{
+					Type = ReferenceType.SecurityScheme,
+					Id = "Bearer"
+				}
+			},
+			Array.Empty<string>()
+		}
+	});
+});
 
 var app = builder.Build();
 
