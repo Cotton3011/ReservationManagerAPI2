@@ -4,6 +4,7 @@ using ReservationManagerAPI2.Dtos;
 using ReservationManagerAPI2.Entities;
 using ReservationManagerAPI2.Services;
 using ReservationManagerAPI2.Exceptions;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ReservationManagerAPI2.Tests
 {
@@ -42,7 +43,9 @@ namespace ReservationManagerAPI2.Tests
 			});
 			await context.SaveChangesAsync();
 
-			var service = new ReservationService(context);
+			var service = new ReservationService(
+				context, 
+				NullLogger<ReservationService>.Instance);
 			var request = new CreateReservationRequest
 			{
 				//既存予約の途中から始まるため、時間帯が重複する
@@ -66,7 +69,9 @@ namespace ReservationManagerAPI2.Tests
 		public async Task GetMyreservationByIdAsync_ReservationNotExist_ThrowsNotFoundException()
 		{
 			await using var context = CreateContext();
-			var service = new ReservationService(context);
+			var service = new ReservationService(
+				context,
+				NullLogger<ReservationService>.Instance);
 
 			//存在しない予約IDでは404用の業務例外が発生する
 			var exception = await Assert.ThrowsAsync<NotFoundException>(
@@ -81,7 +86,9 @@ namespace ReservationManagerAPI2.Tests
 		public async Task CancelMyReservationAsync_ReservationDoesNotExist_ThrowsNotFoundException()
 		{
 			await using var context = CreateContext();
-			var service = new ReservationService (context);
+			var service = new ReservationService (
+				context,
+				NullLogger<ReservationService>.Instance);
 
 			//自分の予約がなければ404
 			var exception = await Assert.ThrowsAsync <NotFoundException>(
@@ -111,7 +118,9 @@ namespace ReservationManagerAPI2.Tests
 			});
 			await context.SaveChangesAsync();
 
-			var service = new ReservationService(context);
+			var service = new ReservationService(
+				context,
+				NullLogger<ReservationService>.Instance);
 
 			//キャンセル済み予約を再度キャンセルすると409用の業務例外が発生する
 			var exception = await Assert.ThrowsAsync<ConflictException>(

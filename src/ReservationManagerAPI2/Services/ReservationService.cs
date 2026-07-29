@@ -4,15 +4,20 @@ using ReservationManagerAPI2.Data;
 using Microsoft.EntityFrameworkCore;
 using ReservationManagerAPI2.Exceptions;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace ReservationManagerAPI2.Services
 {
 	public class ReservationService
 	{
 		readonly AppDbContext _context;
-		public ReservationService(AppDbContext appDbContext) 
+		readonly ILogger<ReservationService> _logger;
+
+		public ReservationService(AppDbContext appDbContext,
+			ILogger<ReservationService> logger) 
 		{
 			_context = appDbContext;
+			_logger = logger;
 		}
 
 		public async Task<Reservation>CreateReservationRequest(
@@ -37,6 +42,11 @@ namespace ReservationManagerAPI2.Services
 			
 			if (isOverlap)
 			{
+				_logger.LogWarning("重複予約を検出しました UserId: {UserId}, StartTime: {StartTime}, EndTime: {EndTime}",
+					userId,
+					request.StartTime,
+					request.EndTime);
+
 				throw new ConflictException("すでに予約されています");
 			}
 
@@ -55,6 +65,9 @@ namespace ReservationManagerAPI2.Services
 
 			_context.Reservations.Add(reservation);
 			await _context.SaveChangesAsync();
+			_logger.LogInformation("予約作成 ReservationId: {ReservationId}, UserId: {UserId}",
+				reservation.Id,
+				userId);
 
 			return reservation;
 		}
@@ -119,6 +132,9 @@ namespace ReservationManagerAPI2.Services
 			reservation.Status = ReservationStatus.Canceled;
 			reservation.UpdateAt = DateTime.UtcNow;
 			await _context.SaveChangesAsync();
+			_logger.LogInformation("ユーザーが予約をキャンセルしました ReservationId: {ReservationId}, UserId: {UserId}",
+				reservation.Id,
+				userId);
 		}
 
 		public async Task<List<AdminReservationResponse>> GetAllReservationsForAdminAsync()
@@ -158,6 +174,8 @@ namespace ReservationManagerAPI2.Services
 			reservation.UpdateAt = DateTime.UtcNow;
 
 			await _context.SaveChangesAsync();
+			_logger.LogInformation("ユーザーが予約をキャンセルしました ReservationId: {ReservationId}",
+				reservation.Id);
 		}
 	}
 }
