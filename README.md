@@ -1,98 +1,189 @@
 # ReservationManagerAPI2
 
+予約管理を題材に、ASP.NET Core Web API の認証・認可、Entity Framework Core、Docker、CI、例外処理、ログ出力を学習するプロジェクトです。
+
 ## 主な機能
 
-### 認証
+- ユーザー登録・ログイン
+- JWT 認証
+- User / Admin のロール認可
+- 予約作成・一覧・詳細・キャンセル
+- Admin による全予約一覧・任意予約キャンセル
+- 予約時間の重複判定
+- 予約状態管理: `Reserved` / `Canceled`
+- 例外 Middleware による HTTP エラーの統一
+- `ILogger` による予約操作ログ
 
-- ユーザー登録
-- パスワードのハッシュ化
-- ログイン
-- JWT発行
-- JWTからUserId / Roleを取得
+## 学習・実装状況
 
-### 予約管理
+### これまでに実装したこと
 
-- 予約作成
-- 自分の予約一覧取得
-- 自分の予約詳細取得
-- 自分の予約キャンセル
-- 過去日時の予約防止
-- StartTime / EndTime のバリデーション
-- 予約重複防止
-- Canceled状態の予約を重複判定から除外
+- [x] Entity Framework Core と SQL Server
+- [x] JWT 認証と User / Admin 認可
+- [x] Service 層への業務ロジック分離
+- [x] 予約重複判定・状態管理
+- [x] Dockerfile による API のコンテナ化
+- [x] Docker Compose による API + SQL Server 起動
+- [x] `.env` による環境変数管理
+- [x] GitHub Actions による build / test
+- [x] xUnit による ReservationService の単体テスト
+- [x] 例外 Middleware と `400 / 401 / 403 / 404 / 409 / 500`
+- [x] `ILogger` による業務ログ
+- [x] Docker 上での業務ログ確認
 
-### Admin機能
+### これから学ぶこと
 
-- 全ユーザーの予約一覧取得
-- 任意の予約キャンセル
-- `[Authorize(Roles = "Admin")]` によるAdmin専用API
-- 初期Adminユーザー作成
+- [ ] テストケースの拡充
+- [ ] README の継続的な更新
 
-## Entity構成
+## 構成
 
-### User
+```text
+ReservationManagerAPI2/
+|- src/
+|  `- ReservationManagerAPI2/        # API 本体
+|- tests/
+|  `- ReservationManagerAPI2.Tests/  # xUnit テスト
+|- .github/workflows/ci.yml          # GitHub Actions
+|- .env.example                      # 環境変数のひな形
+|- docker-compose.yml
+|- Dockerfile
+`- ReservationManagerAPI2.sln
+```
 
-- Id
-- UserName
-- PasswordHash
-- Role
-- CreateTime
+```mermaid
+flowchart LR
+    Client[Swagger / API Client] --> API[ASP.NET Core API]
+    API --> DB[(SQL Server)]
+    CI[GitHub Actions] --> Build[restore / build / test]
+```
 
-### UserRole
+Docker Compose 内では、API から SQL Server へ `localhost` ではなく `db` サービス名で接続します。
 
-- User
-- Admin
+## Docker 起動
 
-### Reservation
+### 1. 環境変数ファイルを作成
 
-- Id
-- UserId
-- StartTime
-- EndTime
-- Memo
-- Status
-- CreateAt
-- UpdateAt
-- User
+```powershell
+Copy-Item .env.example .env
+```
 
-### ReservationStatus
+`.env` を開き、プレースホルダーのパスワード・JWT キーを開発用の値へ変更します。
 
-- Reserved
-- Canceled
+### 2. API と DB を起動
 
-## API一覧
+```powershell
+docker compose up --build
+```
 
-### Auth
+Swagger:
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
+```text
+http://localhost:8080/swagger
+```
 
-### Reservations
+停止・削除:
 
-- `POST /api/reservations`
-- `GET /api/reservations`
-- `GET /api/reservations/{id}`
-- `PATCH /api/reservations/{id}/cancel`
+```powershell
+docker compose down
+```
 
-### Admin
+DB データも削除する場合だけ、次を使用します。
 
-- `GET /api/admin/reservations`
-- `PATCH /api/admin/reservations/{id}/cancel`
+```powershell
+docker compose down -v
+```
 
-## API詳細
+> `down -v` は SQL Server のユーザー・予約データを削除します。
 
-| 区分 | メソッド | URL | 認証 | 権限 | 内容 |
-| --- | --- | --- | --- | --- | --- |
-| Auth | POST | `/api/auth/register` | 不要 | なし | 一般ユーザーを登録する |
-| Auth | POST | `/api/auth/login` | 不要 | なし | ログインしてJWTを取得する |
-| Reservations | POST | `/api/reservations` | 必要 | User / Admin | 自分の予約を作成する |
-| Reservations | GET | `/api/reservations` | 必要 | User / Admin | 自分の予約一覧を取得する |
-| Reservations | GET | `/api/reservations/{id}` | 必要 | User / Admin | 自分の予約詳細を取得する |
-| Reservations | PATCH | `/api/reservations/{id}/cancel` | 必要 | User / Admin | 自分の予約をキャンセルする |
-| Admin | GET | `/api/admin/reservations` | 必要 | Admin | 全ユーザーの予約一覧を取得する |
-| Admin | PATCH | `/api/admin/reservations/{id}/cancel` | 必要 | Admin | 任意の予約をキャンセルする |
+## 環境変数
 
-## ER図
+| 変数名 | 用途 |
+| --- | --- |
+| `MSSQL_SA_PASSWORD` | SQL Server の `sa` パスワード |
+| `JWT_KEY` | JWT 署名用の秘密鍵 |
+| `JWT_ISSUER` | JWT の発行者 |
+| `JWT_AUDIENCE` | JWT の利用対象 |
+| `JWT_EXPIRE_MINUTES` | JWT の有効期限（分） |
+| `ADMIN_USER_NAME` | 初期 Admin のユーザー名 |
+| `ADMIN_USER_PASSWORD` | 初期 Admin のパスワード |
+
+`.env` は `.gitignore` で除外し、GitHub へ commit しません。
+
+## テストと CI
+
+ローカルでのテスト:
+
+```powershell
+dotnet test ReservationManagerAPI2.sln
+```
+
+現在のテストでは、以下を確認しています。
+
+- 重複予約は `ConflictException` になる
+- 存在しない予約詳細は `NotFoundException` になる
+- 存在しない予約のキャンセルは `NotFoundException` になる
+- キャンセル済み予約の再キャンセルは `ConflictException` になる
+
+GitHub Actions は push 時に次を自動実行します。
+
+```text
+dotnet restore
+dotnet build
+dotnet test
+```
+
+## API 一覧
+
+| 分類 | メソッド | URL | 認証 | 内容 |
+| --- | --- | --- | --- | --- |
+| Auth | POST | `/api/auth/register` | 不要 | ユーザー登録 |
+| Auth | POST | `/api/auth/login` | 不要 | ログイン・JWT 発行 |
+| Reservation | POST | `/api/reservations` | User / Admin | 予約作成 |
+| Reservation | GET | `/api/reservations` | User / Admin | 自分の予約一覧 |
+| Reservation | GET | `/api/reservations/{id}` | User / Admin | 自分の予約詳細 |
+| Reservation | PATCH | `/api/reservations/{id}/cancel` | User / Admin | 自分の予約キャンセル |
+| Admin | GET | `/api/admin/reservations` | Admin | 全予約一覧 |
+| Admin | PATCH | `/api/admin/reservations/{id}/cancel` | Admin | 任意予約キャンセル |
+
+Swagger の **Authorize** には、ログインで取得した JWT 本体だけを貼り付けます。`Bearer ` は付けません。
+
+## エラー処理
+
+業務例外は `ExceptionHandlingMiddleware` が HTTP エラーへ変換します。
+
+| ステータス | 例 |
+| --- | --- |
+| `400 Bad Request` | 終了日時が開始日時より前、過去日時 |
+| `401 Unauthorized` | JWT が未設定・無効 |
+| `403 Forbidden` | User が Admin API へアクセス |
+| `404 Not Found` | 指定した予約が存在しない |
+| `409 Conflict` | 重複予約、キャンセル済み予約の再キャンセル |
+| `500 Internal Server Error` | 想定外の例外 |
+
+エラー応答は `ProblemDetails` 形式です。
+
+```json
+{
+  "title": "Conflict",
+  "status": 409,
+  "detail": "すでに予約されています"
+}
+```
+
+## ログ
+
+`ReservationService` では次の業務イベントをログ出力します。
+
+- 予約作成成功: `Information`
+- 重複予約検出: `Warning`
+- ユーザー・管理者による予約キャンセル: `Information`
+
+`ExceptionHandlingMiddleware` では、想定外の例外を `Error` として HTTP メソッド・パスとともに記録します。
+
+ログへ JWT、パスワード、接続文字列などの秘密情報は出力しません。
+
+## ER 図
 
 ```mermaid
 erDiagram
@@ -117,111 +208,3 @@ erDiagram
         datetime UpdateAt
     }
 ```
-
-## 予約ルール
-
-### 日時チェック
-
-- `EndTime` は `StartTime` より後であること
-- 過去日時は予約不可
-
-### 重複判定
-
-既存予約と新規予約が重なる場合は予約不可にします。
-
-```csharp
-existingReservation.StartTime < newReservation.EndTime
-    && existingReservation.EndTime > newReservation.StartTime
-```
-
-ただし、`Canceled` 状態の予約は重複判定の対象外です。
-
-## 認可ルール
-
-### User
-
-可能:
-
-- 自分の予約作成
-- 自分の予約一覧取得
-- 自分の予約詳細取得
-- 自分の予約キャンセル
-
-不可:
-
-- 他人の予約閲覧
-- 他人の予約キャンセル
-- Admin APIへのアクセス
-
-### Admin
-
-可能:
-
-- 全ユーザーの予約一覧取得
-- 任意の予約キャンセル
-
-## 設定
-
-### 接続文字列
-
-`appsettings.json` の `DefaultConnection` を使用します。
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=ReservationManagerAPI2Db;Trusted_Connection=True;TrustServerCertificate=true"
-  }
-}
-```
-
-### JWT設定
-
-`appsettings.json` にJWTのIssuer / Audience / 有効期限を設定します。
-
-```json
-{
-  "Jwt": {
-    "Issuer": "ReservationManagerAPI2",
-    "Audience": "ReservationManagerAPI2Users",
-    "ExpireMinutes": 60
-  }
-}
-```
-
-JWT秘密鍵はGitHubに上げないため、User Secretsなどで管理します。
-
-```powershell
-dotnet user-secrets set "Jwt:Key" "your-secret-key"
-```
-
-### 初期Admin
-
-初期AdminユーザーもUser Secretsから読み込みます。
-
-```powershell
-dotnet user-secrets set "AdminUser:UserName" "admin"
-dotnet user-secrets set "AdminUser:Password" "AdminPassword123!"
-```
-
-## 動作確認の流れ
-
-1. アプリを起動する
-2. 一般ユーザーを登録する
-3. 一般ユーザーでログインしてJWTを取得する
-4. Userトークンで予約を作成する
-5. 重複予約が拒否されることを確認する
-6. 自分の予約一覧・詳細を確認する
-7. 自分の予約をキャンセルする
-8. AdminでログインしてJWTを取得する
-9. Adminトークンで全予約一覧を確認する
-10. Adminトークンで任意予約をキャンセルする
-11. UserトークンでAdmin APIにアクセスできないことを確認する
-
-## 想定するHTTPステータス
-
-- `200 OK`: 取得・ログイン・キャンセル成功
-- `201 Created`: 予約作成成功
-- `400 Bad Request`: 入力エラー、重複予約、キャンセル済み予約の再キャンセル
-- `401 Unauthorized`: 未ログイン、JWT不正
-- `403 Forbidden`: User権限でAdmin APIへアクセス
-- `404 Not Found`: 対象予約が存在しない、または自分の予約ではない

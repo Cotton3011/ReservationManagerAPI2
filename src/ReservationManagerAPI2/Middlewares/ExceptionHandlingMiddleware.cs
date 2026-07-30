@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using ReservationManagerAPI2.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace ReservationManagerAPI2.Middlewares
 {
@@ -8,10 +9,13 @@ namespace ReservationManagerAPI2.Middlewares
 	public class ExceptionHandlingMiddleware
 	{
 		readonly RequestDelegate _next;
+		readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-		public ExceptionHandlingMiddleware(RequestDelegate next)
+		public ExceptionHandlingMiddleware(RequestDelegate next,
+			ILogger<ExceptionHandlingMiddleware> logger)
 		{
 			_next = next;
+			_logger = logger;
 		}
 
 		public async Task InvokeAsync(HttpContext context)
@@ -29,8 +33,15 @@ namespace ReservationManagerAPI2.Middlewares
 					exception.StatusCode,
 					exception.Message);
 			}
-			catch(Exception)
+			catch(Exception exception)
 			{
+				//クライアントに詳細を返さず、サーバーログへ例外情報を残す
+				_logger.LogError(
+					exception,
+					"予期しない例外が発生しました Method: {Method}, Path: {Path}",
+					context.Request.Method,
+					context.Request.Path);
+
 				//想定外の例外の詳細はクライアントへ公開しない
 				await WriteProblemDetailsAsync(
 					context,
