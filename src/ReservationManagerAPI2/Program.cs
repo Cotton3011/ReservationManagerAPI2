@@ -6,11 +6,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ReservationManagerAPI2.Middlewares;
 using Microsoft.OpenApi.Models;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddOpenTelemetry().UseAzureMonitor();
 builder.Services.AddControllers();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
