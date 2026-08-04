@@ -34,3 +34,30 @@ jobs:
       - name: Test
         run: dotnet test ReservationManagerAPI2.sln --configuration Release --no-build --no-restore
 
+  deploy:
+    #BuildとTestが成功した後だけ実行する
+    needs: build
+
+    #mainブランチへのpushだけをデプロイ対象にする
+    if: github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      #Azure用のDIDCトークンを発行する
+      id-token: write
+
+    steps:
+      #GitHub SecretsのIDを使ってAzureへ安全にログインする
+      - name: Login to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID}}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
+
+      #Azureへログインできたことだけを確認する
+      - name: Verify Azure login
+        uses: azure/cli@v2
+        with:
+          inlineScript: az account show --output table
