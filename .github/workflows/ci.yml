@@ -5,6 +5,9 @@ name: Build and Test
 on:
   push:
 
+  #GitHub画面から必要な時に手動実行できるようにする
+  workflow_dispatch:
+
 #CIで実行する処理
 jobs:
   build:
