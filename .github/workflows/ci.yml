@@ -44,10 +44,17 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      #Deployジョブでもリポジトリを取得するために必要
+      contents: read
+
       #Azure用のDIDCトークンを発行する
       id-token: write
 
     steps:
+      #Deploy用のRunnerへソースコードを取得する
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
       #GitHub SecretsのIDを使ってAzureへ安全にログインする
       - name: Login to Azure with OIDC
         uses: azure/login@v2
@@ -56,8 +63,31 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID}}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
 
-      #Azureへログインできたことだけを確認する
-      - name: Verify Azure login
+      #Docker Hubへイメージをpushするためにログインする
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME}}
+          password: ${{ secrets.DOCKERHUB_TOKEN}}
+
+      #Dockerfileを使うビルダーを準備する
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      #commit固有タグでイメージを作成し、Docker Hubへpushする
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: cotton3011/reservation-manager-api:${{ github.sha}}
+
+      #Azure Container Appsを新しいイメージへ更新する
+      - name: Deploy image to Azure Container Apps
         uses: azure/cli@v2
         with:
-          inlineScript: az account show --output table
+          inlineScript: |
+            az containerapp update \
+              --name ca-reservation-manager-api \
+              --resource-group rg-reservation-manager-japaneast \
+              --image docker.io/cotton3011/reservation-manager-api:${{ github.sha}}
