@@ -14,27 +14,6 @@
 - 例外 Middleware による HTTP エラーの統一
 - `ILogger` による予約操作ログ
 
-## 学習・実装状況
-
-### これまでに実装したこと
-
-- [x] Entity Framework Core と SQL Server
-- [x] JWT 認証と User / Admin 認可
-- [x] Service 層への業務ロジック分離
-- [x] 予約重複判定・状態管理
-- [x] Dockerfile による API のコンテナ化
-- [x] Docker Compose による API + SQL Server 起動
-- [x] `.env` による環境変数管理
-- [x] GitHub Actions による build / test
-- [x] xUnit による ReservationService の単体テスト
-- [x] 例外 Middleware と `400 / 401 / 403 / 404 / 409 / 500`
-- [x] `ILogger` による業務ログ
-- [x] Docker 上での業務ログ確認
-
-### これから学ぶこと
-
-- [ ] テストケースの拡充 
-- [ ] README の継続的な更新
 
 ## 構成
 
