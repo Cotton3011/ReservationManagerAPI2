@@ -208,3 +208,92 @@ erDiagram
         datetime UpdateAt
     }
 ```
+
+## Azure 公開・運用基礎
+
+このプロジェクトは、Docker イメージを Azure Container Apps で実行し、Azure SQL Database をデータベースとして利用します。
+
+```mermaid
+flowchart LR
+    Client[Swagger / API Client] --> CA[Azure Container Apps]
+    CA --> SQL[Azure SQL Database]
+    CA --> AI[Application Insights]
+    CA --> LA[Log Analytics]
+    GH[GitHub Actions] --> DH[Docker Hub]
+    GH --> CA
+```
+
+| リソース | 用途 |
+| --- | --- |
+| Azure Container Apps | ReservationManagerAPI をコンテナとして実行する |
+| Azure SQL Database | ユーザーと予約データを永続化する |
+| Application Insights | HTTP リクエスト、例外、依存関係を確認する |
+| Log Analytics | コンテナとアプリケーションのログを検索する |
+| Docker Hub | デプロイする Docker イメージを管理する |
+| GitHub Actions | build / test / Docker push / Azure へのデプロイを自動化する |
+
+### Azure の環境変数とシークレット
+
+Azure Container Apps では、接続文字列や JWT 秘密鍵をシークレットとして保存し、環境変数から ASP.NET Core に渡します。
+実際の接続文字列、パスワード、JWT 秘密鍵は README、Git、Docker イメージに含めません。
+
+| 環境変数名 | 用途 |
+| --- | --- |
+| `ConnectionStrings__DefaultConnection` | Azure SQL Database の接続文字列 |
+| `Jwt__Key` | JWT の署名に使う秘密鍵 |
+| `Jwt__Issuer` | JWT の発行者 |
+| `Jwt__Audience` | JWT の利用対象 |
+| `AdminUser__UserName` | 初期管理者ユーザー名 |
+| `AdminUser__Password` | 初期管理者パスワード |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | Application Insights への送信先 |
+| `OTEL_SERVICE_NAME` | 監視画面で識別するサービス名 |
+
+### Azure SQL Database への Migration 適用
+
+Azure SQL Database を作成した後、ローカルの User Secrets に Azure SQL の接続文字列を設定してから Migration を適用します。
+
+```powershell
+dotnet ef database update --project src/ReservationManagerAPI2/ReservationManagerAPI2.csproj --startup-project src/ReservationManagerAPI2/ReservationManagerAPI2.csproj
+```
+
+Migration が適用されると、Azure SQL Database に `Users`、`Reservations`、`__EFMigrationsHistory` テーブルが作成されます。
+
+### Azure 上のログと監視
+
+Application Insights と Log Analytics で、公開中 API の状態を確認できます。
+
+| 確認対象 | 主な確認場所 |
+| --- | --- |
+| HTTP メソッド、応答コード、処理時間 | Application Insights の `AppRequests` |
+| Azure SQL Database 接続 | Application Insights の `AppDependencies` |
+| `ILogger` の予約作成・重複予約・キャンセルのログ | Log Analytics の `ContainerAppConsoleLogs` |
+| コンテナの起動失敗や再起動 | Container Apps のリビジョンログ |
+
+### GitHub Actions による CI/CD
+
+`main` ブランチへの push または手動実行で、GitHub Actions が次の順番に処理します。
+
+1. `dotnet restore`
+2. `dotnet build --configuration Release`
+3. `dotnet test --configuration Release`
+4. Docker イメージをコミット SHA のタグで Docker Hub へ push
+5. Azure Container Apps を新しいイメージへ更新
+
+`build` または `test` が失敗した場合、`deploy` ジョブは実行されません。
+Azure へのログインには GitHub Actions の OIDC を使い、Azure のパスワードやサービスプリンシパルのシークレットを GitHub に保存しません。
+
+GitHub Secrets には次の値を設定します。値そのものは表示・コミットしません。
+
+| GitHub Secret | 用途 |
+| --- | --- |
+| `AZURE_CLIENT_ID` | Azure アプリケーション登録のクライアント ID |
+| `AZURE_TENANT_ID` | Microsoft Entra テナント ID |
+| `AZURE_SUBSCRIPTION_ID` | Azure サブスクリプション ID |
+| `DOCKERHUB_USERNAME` | Docker Hub ユーザー名 |
+| `DOCKERHUB_TOKEN` | Docker Hub のアクセストークン |
+
+### 学習環境のコスト管理
+
+- Azure SQL Database は無料プランを使用し、超過分の請求を無効にしています。
+- Container Apps は最小レプリカ数を `0` にして、アクセスがないときはスケールダウンします。
+- 学習を終了するときは、リソースグループを削除すると関連リソースをまとめて停止・削除できます。
