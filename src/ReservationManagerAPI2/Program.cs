@@ -10,8 +10,14 @@ using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddOpenTelemetry().UseAzureMonitor();
+//Application Insightsの接続文字列を取得する
+var applicationInsightsConnectionString = builder.Configuration["APPLICATIONSIGHTS_CONNECTION_STRING"];
+//Azure側で接続文字列が設定されている時だけ監視を有効にする
+if (!string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+{
+	//AzureMonitorへログメトリクスリクエスト情報を送信する
+	builder.Services.AddOpenTelemetry().UseAzureMonitor();
+}
 builder.Services.AddControllers();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
@@ -101,8 +107,12 @@ using (var scope = app.Services.CreateScope())
 	await adminSeedService.SeedAsync();
 }
 
-
+//HTTPアクセスをHTTPSへ誘導する
 app.UseHttpsRedirection();
+//ルートURLへのアクセス時にindex.htmlを既定ファイルとして探す
+app.UseDefaultFiles();
+//wwwroot配下のHTML、CSS、JavaScriptをブラウザへ配信する
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
