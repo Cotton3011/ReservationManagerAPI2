@@ -60,7 +60,7 @@ jobs:
 
       #GitHub SecretsのIDを使ってAzureへ安全にログインする
       - name: Login to Azure with OIDC
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID}}
@@ -87,8 +87,17 @@ jobs:
 
       #Azure Container Appsを新しいイメージへ更新する
       - name: Deploy image to Azure Container Apps
-        run: |
-           az containerapp update \
-             --name ca-reservation-manager-api \
-             --resource-group rg-reservation-manager-japaneast \
-             --image docker.io/cotton3011/reservation-manager-api:${{ github.sha }}
+        uses: azure/cli@v2
+        with:
+          azcliversion: 2.87.0
+          inlineScript: |
+            az containerapp show \
+              --name ca-reservation-manager-api \
+              --resource-group rg-reservation-manager-japaneast \
+              --query "{state:properties.provisioningState,containers:properties.template.containers[].name}" \
+              --output json
+
+            az containerapp update \
+              --name ca-reservation-manager-api \
+              --resource-group rg-reservation-manager-japaneast \
+              --image docker.io/cotton3011/reservation-manager-api:${{ github.sha }}
