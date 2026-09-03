@@ -92,12 +92,12 @@ jobs:
           azcliversion: 2.87.0
           inlineScript: |
             az containerapp show \
-              --name ca-reservation-manager-api \
+              --name ca-reservation-manager-api-v2 \
               --resource-group rg-reservation-manager-japaneast \
               --query "{state:properties.provisioningState,containers:properties.template.containers[].name}" \
               --output json
 
             az containerapp update \
-              --name ca-reservation-manager-api \
+              --name ca-reservation-manager-api-v2 \
               --resource-group rg-reservation-manager-japaneast \
               --image docker.io/cotton3011/reservation-manager-api:${{ github.sha }}
