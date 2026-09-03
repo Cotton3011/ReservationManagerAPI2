@@ -1,64 +1,64 @@
-#gitHub Actionsã‚Å•\¦‚·‚éWorkflow–¼
+#gitHub Actionsä¸Šã§è¡¨ç¤ºã™ã‚‹Workflowå
 name: Build and Test
 
-#‚·‚×‚Ä‚Ìƒuƒ‰ƒ“ƒ`‚Ö‚Ìpush‚ÉÀs‚·‚é
+#ã™ã¹ã¦ã®ãƒ–ãƒ©ãƒ³ãƒã¸ã®pushæ™‚ã«å®Ÿè¡Œã™ã‚‹
 on:
   push:
 
-  #GitHub‰æ–Ê‚©‚ç•K—v‚È‚Éè“®Às‚Å‚«‚é‚æ‚¤‚É‚·‚é
+  #GitHubç”»é¢ã‹ã‚‰å¿…è¦ãªæ™‚ã«æ‰‹å‹•å®Ÿè¡Œã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹
   workflow_dispatch:
 
-#CI‚ÅÀs‚·‚éˆ—
+#CIã§å®Ÿè¡Œã™ã‚‹å‡¦ç†
 jobs:
   build:
-    #GitHub‚ª—pˆÓ‚·‚éUbuntuŠÂ‹«‚ÅÀs‚·‚é
+    #GitHubãŒç”¨æ„ã™ã‚‹Ubuntuç’°å¢ƒã§å®Ÿè¡Œã™ã‚‹
     runs-on: ubuntu-latest
 
     steps:
-      #ƒŠƒ|ƒWƒgƒŠ‚ÌƒR[ƒh‚ğRunner‚Öæ“¾‚·‚é
+      #ãƒªãƒã‚¸ãƒˆãƒªã®ã‚³ãƒ¼ãƒ‰ã‚’Runnerã¸å–å¾—ã™ã‚‹
       - name: Checkout source code
         uses: actions/checkout@v6
 
-      #ƒvƒƒWƒFƒNƒg‚Æ“¯‚¶.NET 8 SDK‚ğ—˜—p‚·‚é
+      #ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã¨åŒã˜.NET 8 SDKã‚’åˆ©ç”¨ã™ã‚‹
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
 
-      #API‚ÆƒeƒXƒg‚ÌˆË‘¶ƒpƒbƒP[ƒW‚ğ‚Ü‚Æ‚ß‚Ä•œŒ³‚·‚é
+      #APIã¨ãƒ†ã‚¹ãƒˆã®ä¾å­˜ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ã‚’ã¾ã¨ã‚ã¦å¾©å…ƒã™ã‚‹
       - name: Restore dependencies
         run: dotnet restore ReservationManagerAPI2.sln
 
-      #Release\¬‚Åƒ\ƒŠƒ…[ƒVƒ‡ƒ“‘S‘Ì‚ğƒrƒ‹ƒh‚·‚é
+      #Releaseæ§‹æˆã§ã‚½ãƒªãƒ¥ãƒ¼ã‚·ãƒ§ãƒ³å…¨ä½“ã‚’ãƒ“ãƒ«ãƒ‰ã™ã‚‹
       - name: Build
         run: dotnet build ReservationManagerAPI2.sln --configuration Release --no-restore
 
-      #ƒrƒ‹ƒhÏ‚İ‚ÌƒeƒXƒg‚ğÀs‚µ‚ÄA—\–ñd•¡”»’è‚ğŒŸØ‚·‚é
+      #ãƒ“ãƒ«ãƒ‰æ¸ˆã¿ã®ãƒ†ã‚¹ãƒˆã‚’å®Ÿè¡Œã—ã¦ã€äºˆç´„é‡è¤‡åˆ¤å®šã‚’æ¤œè¨¼ã™ã‚‹
       - name: Test
         run: dotnet test ReservationManagerAPI2.sln --configuration Release --no-build --no-restore
 
   deploy:
-    #Build‚ÆTest‚ª¬Œ÷‚µ‚½Œã‚¾‚¯Às‚·‚é
+    #Buildã¨TestãŒæˆåŠŸã—ãŸå¾Œã ã‘å®Ÿè¡Œã™ã‚‹
     needs: build
 
-    #mainƒuƒ‰ƒ“ƒ`‚Ö‚Ìpush‚¾‚¯‚ğƒfƒvƒƒC‘ÎÛ‚É‚·‚é
+    #mainãƒ–ãƒ©ãƒ³ãƒã¸ã®pushã ã‘ã‚’ãƒ‡ãƒ—ãƒ­ã‚¤å¯¾è±¡ã«ã™ã‚‹
     if: github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
 
     permissions:
-      #DeployƒWƒ‡ƒu‚Å‚àƒŠƒ|ƒWƒgƒŠ‚ğæ“¾‚·‚é‚½‚ß‚É•K—v
+      #Deployã‚¸ãƒ§ãƒ–ã§ã‚‚ãƒªãƒã‚¸ãƒˆãƒªã‚’å–å¾—ã™ã‚‹ãŸã‚ã«å¿…è¦
       contents: read
 
-      #Azure—p‚ÌDIDCƒg[ƒNƒ“‚ğ”­s‚·‚é
+      #Azureç”¨ã®DIDCãƒˆãƒ¼ã‚¯ãƒ³ã‚’ç™ºè¡Œã™ã‚‹
       id-token: write
 
     steps:
-      #Deploy—p‚ÌRunner‚Öƒ\[ƒXƒR[ƒh‚ğæ“¾‚·‚é
+      #Deployç”¨ã®Runnerã¸ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰ã‚’å–å¾—ã™ã‚‹
       - name: Checkout source code
         uses: actions/checkout@v6
 
-      #GitHub Secrets‚ÌID‚ğg‚Á‚ÄAzure‚ÖˆÀ‘S‚ÉƒƒOƒCƒ“‚·‚é
+      #GitHub Secretsã®IDã‚’ä½¿ã£ã¦Azureã¸å®‰å…¨ã«ãƒ­ã‚°ã‚¤ãƒ³ã™ã‚‹
       - name: Login to Azure with OIDC
         uses: azure/login@v2
         with:
@@ -66,18 +66,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID}}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
 
-      #Docker Hub‚ÖƒCƒ[ƒW‚ğpush‚·‚é‚½‚ß‚ÉƒƒOƒCƒ“‚·‚é
+      #Docker Hubã¸ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚’pushã™ã‚‹ãŸã‚ã«ãƒ­ã‚°ã‚¤ãƒ³ã™ã‚‹
       - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME}}
           password: ${{ secrets.DOCKERHUB_TOKEN}}
 
-      #Dockerfile‚ğg‚¤ƒrƒ‹ƒ_[‚ğ€”õ‚·‚é
+      #Dockerfileã‚’ä½¿ã†ãƒ“ãƒ«ãƒ€ãƒ¼ã‚’æº–å‚™ã™ã‚‹
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      #commitŒÅ—Lƒ^ƒO‚ÅƒCƒ[ƒW‚ğì¬‚µADocker Hub‚Öpush‚·‚é
+      #commitå›ºæœ‰ã‚¿ã‚°ã§ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚’ä½œæˆã—ã€Docker Hubã¸pushã™ã‚‹
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
@@ -85,7 +85,7 @@ jobs:
           push: true
           tags: cotton3011/reservation-manager-api:${{ github.sha}}
 
-      #Azure Container Apps‚ğV‚µ‚¢ƒCƒ[ƒW‚ÖXV‚·‚é
+      #Azure Container Appsã‚’æ–°ã—ã„ã‚¤ãƒ¡ãƒ¼ã‚¸ã¸æ›´æ–°ã™ã‚‹
       - name: Deploy image to Azure Container Apps
         uses: azure/cli@v2
         with:

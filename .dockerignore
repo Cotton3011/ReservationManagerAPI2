@@ -1,0 +1,9 @@
+.git
+.github
+.vs
+.tmp
+.env
+**/bin
+**/obj
+**/node_modules
+outputs

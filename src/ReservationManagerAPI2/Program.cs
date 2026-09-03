@@ -11,7 +11,7 @@ using Azure.Monitor.OpenTelemetry.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 //Application Insightsの接続文字列を取得する
-var applicationInsightsConnectionString = builder.Configuration["APPLICATIONSIGHTS_CONNECTION_STRING"];
+var applicationInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
 //Azure側で接続文字列が設定されている時だけ監視を有効にする
 if (!string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
 {

@@ -45,7 +45,7 @@
                 <button type="submit">ログイン</button>
             </form>
             <!--ログイン結果を表示-->
-            <p id="login-messagae" role="status"></p>
+            <p id="login-message" role="status"></p>
         </section>
     </main>
 
@@ -108,7 +108,7 @@
             }
             catch (error) {
                 //API通信や認証失敗の内容を画面へ表示する
-                loginMe.textContent = `ログインに失敗しました: ${error.message}`;
+                loginMessage.textContent = `ログインに失敗しました: ${error.message}`;
             }
         })
 
