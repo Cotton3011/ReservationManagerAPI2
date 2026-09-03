@@ -26,13 +26,93 @@
 
     <!--この画面の主な内容を置く-->
     <main>
-        <!--次のStepでログインフォームを置く領域を用意する-->
         <section id="login-screen">
             <h2>ログイン</h2>
-            
-            <p>フロントエンドの土台を準備</p>
+
+            <!--ログイン情報を送信するフォームを定義-->
+            <form id="login-form">
+                <!--ユーザー名入力欄の説明-->
+                <label for="user-name">ユーザー名</label>
+                <!--ユーザー名を入力する-->
+                <input id="user-name" type="text" required>
+               
+                <!--パスワード入力欄の説明を表示-->
+                <label for="password">パスワード</label>
+                <!--パスワードを伏字で入力-->
+                <input id="password" type="password" required>
+
+                <!--ログインAPIを呼び出す-->
+                <button type="submit">ログイン</button>
+            </form>
+            <!--ログイン結果を表示-->
+            <p id="login-messagae" role="status"></p>
         </section>
     </main>
+
+    <!--画面操作のJavaScriptを定義する-->
+    <script>
+        //ログインフォームを取得
+        const loginForm = document.getElementById("login-form");
+
+        //ユーザー名の入力欄を取得
+        const userNameInput = document.getElementById("user-name");
+
+        //パスワードの入力欄を取得
+        const passwordInput = document.getElementById("password");
+
+        //結果表示用の要素を取得
+        const loginMessage = document.getElementById("login-message");
+
+        //フォーム送信時の処理を登録する
+        loginForm.addEventListener("submit", async (event) => {
+            //ブラウザの通常のフォーム送信と画面再読み込みを止める
+            event.preventDefault()
+            //ログイン中であることを表示する
+            loginMessage.textContent = "ログインしています...";
+
+            try {
+                //既存のログインAPIへ入力値をJSONで送信
+                const response = await fetch("/api/Auth/login", {
+                    //HTTPメソッドをPOSTにする
+                    method: "POST",
+
+                    //送信データがJSONであることを伝える
+                    headers: { "Content-Type": "application/json" },
+
+                    //LoginRequestに対応するJSONを送る
+                    body: JSON.stringify({
+                        //LoginRequest.UserNameへ渡す
+                        userName: userNameInput.value,
+
+                        //LoginRequest.Passwordへ渡す
+                        password: passwordInput.value
+                    })
+                });
+
+                //401などの失敗レスポンスを例外として扱う
+                if (!response.ok) {
+                    //APIが返したエラー内容を取得する
+                    const errorMessage = await response.text();
+
+                    //エラー内容を呼び出し元へ渡す
+                    throw new Error(errorMessage);
+                }
+                //LoginResponseのJSONを取得する
+                const loginResponse = await response.json();
+
+                //タブを閉じるまでJWTを保存する
+                sessionStorage.setItem("accessToken", loginResponse.token);
+
+                //ログイン成功を画面へ表示する
+                loginMessage.textContent = "ログインに成功しました";
+            }
+            catch (error) {
+                //API通信や認証失敗の内容を画面へ表示する
+                loginMe.textContent = `ログインに失敗しました: ${error.message}`;
+            }
+        })
+
+    </script>
 
 </body>
 
