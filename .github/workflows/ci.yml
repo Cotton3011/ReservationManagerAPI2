@@ -87,10 +87,8 @@ jobs:
 
       #Azure Container Appsを新しいイメージへ更新する
       - name: Deploy image to Azure Container Apps
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az containerapp update \
-              --name ca-reservation-manager-api \
-              --resource-group rg-reservation-manager-japaneast \
-              --image docker.io/cotton3011/reservation-manager-api:${{ github.sha}}
+        run: |
+           az containerapp update \
+             --name ca-reservation-manager-api \
+             --resource-group rg-reservation-manager-japaneast \
+             --image docker.io/cotton3011/reservation-manager-api:${{ github.sha }}
